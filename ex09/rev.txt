@@ -1,0 +1,8 @@
+python3.13 -m venv venv
+ls venv/bin           # activate、pip、python が並ぶ
+source venv/bin/activate
+which python
+pip --version
+pip install --upgrade pip
+pip install build
+pip list
