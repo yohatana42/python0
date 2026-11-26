@@ -1,0 +1,358 @@
+================================================================
+Training Piscine Python for Data Science - 0 (Starting)
+ex00〜ex09 解説 と ex09 操作手順メモ
+================================================================
+
+環境: Python 3.13.5 (macOS) / flake8 / C++経験あり
+共通: 実行は python3 ファイル名 (コンパイル不要)
+      出力確認は python3 ファイル名 | cat -e (行末に$が付く)
+      スタイル確認は flake8 ファイル名 (無出力ならOK)
+
+----------------------------------------------------------------
+■ 追加ルール (ex04 以降で適用)
+----------------------------------------------------------------
+- グローバルスコープにコードを書かない (関数を使う)
+- main() を作り、if __name__ == "__main__": main() で呼ぶ
+- 捕捉されない例外が1つでもあると不合格
+- すべての関数に docstring を付ける
+- flake8 に準拠する
+- import は明示的に (from x import * は禁止)
+- Python 3.10 以上
+
+----------------------------------------------------------------
+■ ex00  Hello.py  (list / tuple / set / dict の変更)
+----------------------------------------------------------------
+目的:
+  型ごとの性質 (変更可能か、順序、重複) を意識して、既存のオブジェクトを
+  書き換える。作り直し・最終値のハードコードは不可。
+
+要点:
+  - list : append など、メソッドでその場で変更できる
+  - tuple: 変更不可。スライスと + で結合した新しい tuple を同じ変数に再代入
+           要素1個の tuple は末尾にカンマが必要  ("Japan!",)
+           ("Japan!") はただの文字列になり TypeError の原因になる
+  - set  : 重複は自動で1つにまとまる。順序は保証されない
+           |= (追加) や -= (削除) はその場で変更する演算子
+  - dict : d[key] = value の代入で値を上書きする
+  - Authorized: append のため、他のメソッドを使えるかは評価者に確認する
+  - 出力例の国/都市/名前は、自分のキャンパス (42Tokyo) に読み替える
+
+----------------------------------------------------------------
+■ ex01  format_ft_time.py  (time / datetime とフォーマット)
+----------------------------------------------------------------
+目的:
+  現在時刻のエポック秒と日付を、決められた形式で表示する。
+
+要点:
+  - 現在時刻の取得は1回にして、そこから両方の表示を作る
+  - 書式指定: {x:,.4f} = カンマ区切り+小数4桁
+              {x:.2e}  = 指数表記 (小数2桁)
+  - 日付: strftime("%b %d %Y")  (%y は2桁、%Y は4桁)
+  - 隣り合う文字列リテラルは自動連結される。空白の入れ忘れに注意
+    (" or " や " in scientific notation" の前後の空白)
+  - 行末の空白は flake8 の W291
+
+----------------------------------------------------------------
+■ ex02  find_ft_type.py  (関数・型の判定)
+----------------------------------------------------------------
+目的:
+  渡された値の型を表示し、必ず 42 を返す関数 all_thing_is_obj を作る。
+
+要点:
+  - type(object) で渡された値の型を取得 (type(Any) ではない)
+  - list/tuple/set/dict/str で分岐し、それ以外は "Type not found"
+  - str のときは値そのものを文に含める ("Brian is in the kitchen : ...")
+  - return 42 は分岐の外で1回
+  - 単独実行しても何も出力しない
+  - インデントはスペース4個 (タブ混在はエラーの原因)
+  - 引数名 object は組み込み名を隠すが、subject指定なので雛形どおり
+
+----------------------------------------------------------------
+■ ex03  NULL_not_found.py  (null っぽい値の判定)
+----------------------------------------------------------------
+目的:
+  None / NaN / 0 / "" / False を判定して表示。認識できれば 0、
+  できなければ "Type not Found" を表示して 1 を返す。
+
+要点:
+  - None は  type(x) is type(None)  または  x is None
+  - NaN は自分自身と等しくない性質を使う:  x != x
+  - 0 と False を区別するため、型 (type(x) is int / bool) と値を両方見る
+    (0 == False は True。bool は int のサブクラス)
+  - 「型だけ」の条件だと 5 や 3.14 まで拾ってしまう。型 かつ 値 で絞る
+  - False との比較は  x is False  (== False は flake8 の E712)
+  - 出力のラベルは期待出力どおり (Cheese、Type not Found の F は大文字)
+
+----------------------------------------------------------------
+■ ex04  whatis.py  (sys.argv、assert、例外処理)
+----------------------------------------------------------------
+目的:
+  引数の整数が偶数か奇数かを表示。エラー時は AssertionError: メッセージ
+  の1行だけを表示する。
+
+要点:
+  - sys.argv[0] はスクリプト名。引数なしでも len(sys.argv) は 1
+  - 引数なし → 何も出さず終了 / 2個以上 → "more than one argument..."
+  - 整数でない → "argument is not an integer"
+  - "-5".isdigit() は False。先頭の - を除いてから isdigit() で判定
+  - assert 条件, "メッセージ" と try/except AssertionError as e で表示
+  - except の後に return を入れる (入れないと下の処理が続いて別の例外)
+  - 変数は if/else の両方で必ず代入する (UnboundLocalError 対策)
+  - -5 % 2 は Python では 1 (C++ では -1)
+
+----------------------------------------------------------------
+■ ex05  building.py  (文字種のカウント、input)
+----------------------------------------------------------------
+目的:
+  文字列の 大文字/小文字/句読点/空白/数字 の数を表示する。
+
+要点:
+  - 引数なしのときは "What is the text to count?" と表示して入力を受ける
+  - 引数が2つ以上 → AssertionError (判定は len(sys.argv) > 2)
+  - 1文字ずつ isupper / islower / isspace / isdigit で判定し、
+    どれでもないものを句読点として数える (elif の順序が大切)
+  - string モジュールは使えない (Authorized: None)
+  - EOF (何も打たずに Ctrl+D) で例外が出ないようにする
+    input() は EOFError、sys.stdin.readline() は空文字を返す
+  - subject の 13 文字の例は、Enter の改行も数えた場合
+  - zsh では ! を含む文字列を ダブルクォート で囲むと履歴展開される
+    → シングルクォートを使う
+  - 検算用: 長い例文で 171 / 2 / 121 / 7 / 26 / 15
+
+----------------------------------------------------------------
+■ ex06  sos.py  (辞書でモールス符号)
+----------------------------------------------------------------
+目的:
+  文字列をモールス符号に変換する。符号間は空白1つ、空白は /。
+
+要点:
+  - 辞書は main() の中に置く (グローバル変数禁止のため)
+  - 先に text.upper() で大文字にそろえ、その後で検証する
+  - 検証は「辞書にあるか」(ch in dict / ch not in dict)
+    isalnum() は日本語やアクセント付き文字も通すので KeyError の原因
+  - 引数の数が1でない / 不正な文字 → AssertionError: the arguments are bad
+  - 辞書の値の末尾に空白があるので、最後に rstrip() などで取り除く
+    (区切りの空白を二重に足さない)
+  - 1文字ずつ print すると改行されるので、連結してから print を1回
+
+----------------------------------------------------------------
+■ ex07  filterstring.py  (リスト内包表記と lambda)
+----------------------------------------------------------------
+目的:
+  文字列 S と整数 N を受け取り、長さが N より大きい単語のリストを表示。
+
+要点:
+  - 引数は2つ (len(sys.argv) == 3)。N が整数でなければ
+    AssertionError: the arguments are bad
+  - text.split() で単語に分け、内包表記 [w for w in ... if 条件]
+  - 条件は ">" (N より大きい)
+  - lambda と内包表記の両方が必要
+  - lambda は式1つだけ (for 文は書けないが、内包表記は式なので入れられる)
+  - lambda を変数に代入すると flake8 E731
+    → その場で呼ぶ形  (lambda s, n: [w for w in s.split() if len(w) > n])(text, num)
+  - 負の数や空文字の扱いは自分で決めた仕様として説明できるようにする
+
+----------------------------------------------------------------
+■ ex08  ft_filter.py  (ジェネレータ)
+----------------------------------------------------------------
+目的:
+  組み込みの filter を yield で自作する (組み込みの filter は使用禁止)。
+
+要点:
+  - yield を含む関数はジェネレータになる (呼んだだけでは本体は動かない)
+  - for で iterable の要素を1つずつ取り出し、function(要素) が真なら yield
+  - function が None のときは、要素そのものが真のものを通す
+  - 判定は真偽値でなく truthy / falsy
+    falsy: None, False, 0, 0.0, "", [], (), {}, set()
+  - docstring は filter.__doc__ と完全一致させる
+    2行目以降は行頭から書く (字下げも __doc__ に入るため)
+    確認: print(ft_filter.__doc__ == filter.__doc__)  → True
+  - 戻り値の型は組み込みが filter、自作は generator。
+    list() で取り出した値が一致すればよい
+  - 関数に -> None の型ヒントは付けない
+  - 単独実行しても何も出力しない
+
+----------------------------------------------------------------
+■ ex09  ft_package  (パッケージ作成)
+----------------------------------------------------------------
+目的:
+  自作パッケージを作り、pip でインストールできる形にして、
+  pip list / pip show -v ft_package に表示させる。
+  次の両方でインストールできること:
+    pip install ./dist/ft_package-0.0.1.tar.gz
+    pip install ./dist/ft_package-0.0.1-py3-none-any.whl
+  使い方: from ft_package import count_in_list
+    count_in_list(["toto","tata","toto"], "toto")  → 2
+    count_in_list(["toto","tata","toto"], "tutu")  → 0
+
+提出物: *.py, *.txt, *.toml, README.md, LICENSE
+
+ファイル構成 (ex09/ 直下が「プロジェクトのルート」):
+  ex09/
+  ├── pyproject.toml     ← ルート直下
+  ├── README.md          ← ルート直下
+  ├── LICENSE            ← ルート直下
+  └── ft_package/
+      └── __init__.py    ← import されるコードだけここ
+
+pyproject.toml の例:
+  [build-system]
+  requires = ["setuptools"]
+  build-backend = "setuptools.build_meta"
+
+  [project]
+  name = "ft_package"
+  version = "0.0.1"
+  description = "A sample test package"
+  readme = "README.md"
+  license = "MIT"
+  license-files = ["LICENSE"]
+  authors = [
+      { name = "(自分の名前)" },
+      { email = "(自分のメール)" },
+  ]
+  requires-python = ">=3.10"
+
+  [project.urls]
+  Homepage = "(GitHubのURL)"
+
+メモ:
+  - license = { file = "LICENSE" } (旧形式) だと pip show の License に
+    LICENSE の本文が出る。新形式 license = "MIT" にすると
+    License-Expression: MIT と表示される
+  - authors に name と email を同じ項目に書くと Author: が空になる。
+    別項目に分けると Author: に名前が出る
+  - Metadata-Version は 2.4 になる (subject の 2.1 は古い例)
+
+----------------------------------------------------------------
+■ ex09  操作手順
+----------------------------------------------------------------
+[1] 仮想環境の作成と有効化 (ex09/ で実行)
+    cd ex09
+    python3.13 -m venv venv
+    source venv/bin/activate
+    which python            # .../ex09/venv/bin/python を指すこと
+    pip install --upgrade pip
+    pip install build
+
+    注意: python3 が 3.14 を指す環境では、python3 -m venv が
+    ensurepip のエラーで失敗し、activate が作られなかった。
+    そのため python3.13 を明示して作成した。
+
+[2] コードを書く
+    ft_package/__init__.py に count_in_list を実装
+    (カウンターは ループの前に 0 で初期化する)
+
+[3] ビルド (pyproject.toml があるディレクトリ = ex09/ で実行)
+    python -m build
+    ls dist
+    → ft_package-0.0.1.tar.gz と ft_package-0.0.1-py3-none-any.whl
+
+[4] インストール (.tar.gz)
+    pip install ./dist/ft_package-0.0.1.tar.gz
+
+[5] インストール (.whl)
+    pip uninstall ft_package          # Proceed? に Y
+    pip install ./dist/ft_package-0.0.1-py3-none-any.whl
+
+[6] 再ビルドしたとき (pyproject.toml を直したあと)
+    pip uninstall ft_package
+    rm -rf dist build *.egg-info      # 先に pwd で ex09 を確認
+    python -m build
+    pip install ./dist/ft_package-0.0.1.tar.gz
+    ※同じバージョンのまま上書きすると、古いメタデータが残ることがある
+
+----------------------------------------------------------------
+■ ex09  確認方法
+----------------------------------------------------------------
+[A] インストール確認
+    pip list                  # ft_package 0.0.1 が出る
+    pip show -v ft_package    # 下の項目を確認
+
+      Name: ft_package
+      Version: 0.0.1
+      Summary: A sample test package
+      Home-page: (URL)
+      Author: (名前)
+      Author-email: (メール)
+      License-Expression: MIT
+      Location: .../ex09/venv/lib/python3.13/site-packages
+
+[B] 動作確認 (ex09/ の外で行う)
+    cd /tmp
+    python -c "from ft_package import count_in_list; print(count_in_list(['toto', 'tata', 'toto'], 'toto'))"   # 2
+    python -c "from ft_package import count_in_list; print(count_in_list(['toto', 'tata', 'toto'], 'tutu'))"   # 0
+
+    ex09/ の中で実行すると、インストールしたパッケージではなく
+    ソースの ft_package/ フォルダが読まれてしまうため、外で確認する。
+
+[C] スタイル確認
+    pip install flake8        # venv の中に入る
+    flake8 ft_package         # 無出力ならOK
+
+[D] 提出前確認
+    - 提出するもの: ft_package/__init__.py, pyproject.toml,
+                    README.md, LICENSE (*.txt は中身を確認してから)
+    - 提出しないもの: venv/, dist/, build/, *.egg-info/, __pycache__/
+    - .gitignore に次を入れる
+        venv/
+        dist/
+        build/
+        *.egg-info/
+        __pycache__/
+    - git status で上記が追跡対象に出ていないこと
+    - 追跡してしまった場合: git rm -r --cached venv dist build
+      (実ファイルは消えない)
+
+[E] 評価の予行演習 (クリーンな状態から再現)
+    deactivate
+    cd ex09 && pwd                    # ex09 であることを確認
+    rm -rf venv dist build *.egg-info
+    python3.13 -m venv venv
+    source venv/bin/activate
+    pip install build
+    python -m build
+    pip install ./dist/ft_package-0.0.1.tar.gz
+    pip show -v ft_package
+
+----------------------------------------------------------------
+■ ex09  消しかた (venv の終了・削除・アンインストール)
+----------------------------------------------------------------
+[1] venv を終了する (フォルダは残る)
+    deactivate
+    → プロンプトの (venv) が消える
+    → 次回は source venv/bin/activate で再度有効化
+    → ターミナルを閉じても自動で解除される
+
+[2] パッケージだけ消す (venv は有効化した状態で)
+    pip uninstall ft_package          # Proceed? に Y
+
+[3] ビルド成果物を消す (ex09/ で実行)
+    pwd                               # ex09 を必ず確認
+    rm -rf dist build *.egg-info
+
+[4] venv を完全に消す
+    deactivate                        # 先に終了する
+    cd ~/work/python0/ex09
+    pwd                               # ex09 を必ず確認
+    rm -rf venv
+    ※ venv の中の ft_package や flake8 も一緒に消える。
+      再確認するときは python3.13 -m venv venv から作り直す。
+
+注意: rm -rf は元に戻せない。実行前に pwd で場所を確認すること。
+
+----------------------------------------------------------------
+■ 評価で説明できるようにしておく点
+----------------------------------------------------------------
+- ex00: tuple は変更不可なので、結合した新しい tuple に再代入する理由
+- ex03: NaN を == で判定できない理由 (x != x)、0/False の区別に型を使う理由
+- ex04: sys.argv[0] がスクリプト名であること、isdigit() が負数を弾くこと
+- ex05: 句読点を「他のどれでもない文字」として数える仕様、EOF の扱い
+- ex06: 辞書をグローバルにしない理由、検証を辞書の in で行う理由
+- ex07: 内包表記の if が1語ごとに評価されること、E731 の回避方法
+- ex08: yield とジェネレータ、truthy/falsy、docstring 完全一致の理由
+- ex09: .tar.gz (ソース配布物) と .whl (ビルド済み) の違い、
+        License-Expression と Metadata-Version が subject の例と違う理由、
+        ex09 の外で確認した理由、python3.13 を明示した理由
+
+================================================================
